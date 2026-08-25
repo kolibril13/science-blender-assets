@@ -22,6 +22,7 @@ demand (right-click → *Download Asset*, or the download button on the asset).
 | `assets/*.blend` | yes | The assets themselves |
 | `assets/blender_assets.cats.txt` | yes | Catalog definitions |
 | `assets/_asset-library-meta.json` | yes | Library name + contact details |
+| `assets/index.html` | yes | Landing page shown when the URL is opened in a browser |
 | `assets/_v1/` | no | Generated listing (asset index + pages) |
 | `assets/*_thumbnails/` | no | Generated WebP preview images |
 
