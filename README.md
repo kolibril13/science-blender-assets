@@ -22,7 +22,6 @@ demand (right-click → *Download Asset*, or the download button on the asset).
 | `assets/*.blend` | yes | The assets themselves |
 | `assets/blender_assets.cats.txt` | yes | Catalog definitions |
 | `assets/_asset-library-meta.json` | yes | Library name + contact details |
-| `assets/.nojekyll` | yes | Stops GitHub Pages from hiding the `_v1/` directory |
 | `assets/_v1/` | no | Generated listing (asset index + pages) |
 | `assets/*_thumbnails/` | no | Generated WebP preview images |
 
