@@ -1,0 +1,78 @@
+name: Build & Publish Remote Asset Library
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # The .blend files, blender_assets.cats.txt and _asset-library-meta.json live
+  # here; this directory becomes the root of the published library.
+  LIBRARY_DIR: assets
+
+jobs:
+  build:
+    name: Generate asset listing
+    runs-on: ubuntu-latest
+
+    # Superseded runs for the same branch/PR are pointless, so drop them.
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: BradyAJohnston/setup-blender@v5
+        with:
+          version: 5.2
+
+      # Writes _asset-library-meta.json, _v1/asset-index.json, _v1/assets-*.json
+      # and the *_thumbnails/ WebP previews. The name & contact already in
+      # _asset-library-meta.json are preserved; only api_versions is refreshed.
+      - name: Generate asset listing
+        run: blender -b --factory-startup -c asset_listing generate "$LIBRARY_DIR"
+
+      - name: Verify asset listing
+        run: python3 .github/scripts/verify_listing.py "$LIBRARY_DIR"
+
+      - name: Show generated listing
+        run: |
+          echo '## Generated listing' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat "$LIBRARY_DIR/_asset-library-meta.json" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload library as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.LIBRARY_DIR }}
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    # Never cancel an in-flight deployment: a half-published library would
+    # serve a listing whose hashes no longer match the files next to it.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
