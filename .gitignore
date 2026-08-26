@@ -9,3 +9,6 @@ assets/*_thumbnails/
 
 # Created by `blender -c asset_listing download` when testing the library locally.
 _asset_download_location/
+
+# Editor/tooling state that sometimes lands inside the library folder.
+.claude/

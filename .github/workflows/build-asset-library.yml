@@ -196,10 +196,18 @@ jobs:
             // listing, so this page never goes stale. Silently skipped if it fails.
             (async () => {
               try {
-                const index = await (await fetch("_v1/asset-index.json")).json();
+                // GitHub Pages serves these with max-age=600, so the index is
+                // revalidated explicitly — otherwise a freshly published asset
+                // stays invisible here for ten minutes. Everything the index
+                // points at is then fetched with its hash in the query string,
+                // which is exactly what Blender does: the URL changes whenever
+                // the content does, so those can be cached hard and still never
+                // go stale.
+                const bust = (url, hash) => url + (hash ? "?hash=" + encodeURIComponent(hash) : "");
+                const index = await (await fetch("_v1/asset-index.json", { cache: "no-cache" })).json();
                 const catalogs = new Map((index.catalogs || []).flatMap(c => (c.uuids || []).map(u => [u, c.path])));
                 const pages = await Promise.all(
-                  (index.pages || []).map(p => fetch(p.url).then(r => r.json()))
+                  (index.pages || []).map(p => fetch(bust(p.url, p.hash)).then(r => r.json()))
                 );
                 const assets = pages.flatMap(p => p.assets || []);
                 if (!assets.length) return;
@@ -210,7 +218,7 @@ jobs:
                   card.className = "card";
                   if (asset.thumbnail) {
                     const img = document.createElement("img");
-                    img.src = asset.thumbnail.url;
+                    img.src = bust(asset.thumbnail.url, asset.thumbnail.hash);
                     img.alt = "";
                     img.loading = "lazy";
                     card.append(img);
@@ -249,12 +257,18 @@ jobs:
       - name: Verify asset listing
         run: python3 .github/scripts/verify_listing.py "$SITE_DIR"
 
+      # The generator writes the metadata file without a trailing newline, so the
+      # bare `echo` is needed or the closing fence lands on the same line as the
+      # final `}` and the code block never closes.
       - name: Show generated listing
         run: |
-          echo '## Generated listing' >> "$GITHUB_STEP_SUMMARY"
-          echo '```json' >> "$GITHUB_STEP_SUMMARY"
-          cat "$SITE_DIR/_asset-library-meta.json" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo '## Generated listing'
+            echo '```json'
+            cat "$SITE_DIR/_asset-library-meta.json"
+            echo
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload site as Pages artifact
         uses: actions/upload-pages-artifact@v5
