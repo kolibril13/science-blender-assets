@@ -21,6 +21,11 @@ Online libraries cannot be linked, so the import method is Append or Pack.
 
 Opening that URL in a browser shows a landing page with the same instructions.
 
+**When new assets are published**, Blender will not pick them up on its own:
+select this library in the Asset Browser and use **Library → Refresh Remote
+Listing**. The ⟳ button next to the library dropdown is a different action — it
+only rereads the locally cached copy and never re-downloads.
+
 ## Layout
 
 `assets/` holds the library and nothing else. Everything needed to publish it —

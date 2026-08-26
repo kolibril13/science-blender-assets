@@ -167,6 +167,13 @@ jobs:
               demand — right-click an asset and choose <em>Download Asset</em>. Online
               libraries cannot be linked, so the import method is Append or Pack.
             </p>
+            <p class="note">
+              <strong>Not seeing a newly published asset?</strong> Blender caches the
+              listing. Select this library in the Asset Browser and use
+              <kbd>Library &#9656; Refresh Remote Listing</kbd> — the refresh button next
+              to the library dropdown only re-reads the local cache and does not
+              re-download anything.
+            </p>
 
             <section id="listing" hidden>
               <h2>In this library</h2>
