@@ -106,4 +106,3 @@ GitHub Pages satisfies what Blender requires of the server: it sends
 `Content-Length`, ignores query strings (Blender requests files as
 `grid.blend?hash=…`), and supports `ETag`/`Last-Modified` so the periodic
 listing sync usually costs a `304`.
-
