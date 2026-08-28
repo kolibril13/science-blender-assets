@@ -15,6 +15,9 @@ env:
   LIBRARY_DIR: assets
   # The published site root, assembled below.
   SITE_DIR: _site
+  # Single source of truth for the installed Blender version — used for the
+  # setup-blender step and echoed into the generated landing page.
+  BLENDER_VERSION: "5.2"
 
 jobs:
   build:
@@ -31,7 +34,22 @@ jobs:
 
       - uses: BradyAJohnston/setup-blender@v5
         with:
-          version: 5.2
+          version: ${{ env.BLENDER_VERSION }}
+
+      # Derives everything the landing page needs to be correct for *this*
+      # repo without editing the workflow: the library's display name comes
+      # from the meta file already required to be personalized (see
+      # verify_listing.py's placeholder check), and the Pages/repo URLs come
+      # straight from the repository context, so a fork or template-generated
+      # repo publishes a correct page immediately.
+      - name: Derive site metadata
+        run: |
+          {
+            echo "SITE_TITLE=$(python3 -c 'import json, os; print(json.load(open(os.path.join(os.environ["LIBRARY_DIR"], "_asset-library-meta.json")))["name"])')"
+            echo "PAGES_URL=https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}/"
+            echo "REPO_SLUG=$GITHUB_REPOSITORY"
+            echo "REPO_URL=https://github.com/$GITHUB_REPOSITORY"
+          } >> "$GITHUB_ENV"
 
       # Blender and browsers read from the same root — <url>/_asset-library-meta.json
       # and <url>/index.html — so the library is copied here and the landing
@@ -42,6 +60,9 @@ jobs:
       #
       # The heredoc is quoted, so nothing inside the page is expanded by the
       # shell. GitHub still expands ${{ }} in a run block, so do not add any.
+      # Per-repo values (title, URLs, version) are placeholder tokens here,
+      # filled in by the Python substitution below the heredoc instead — that
+      # keeps this block free of any interpolation, shell- or GitHub-side.
       - name: Stage site
         run: |
           mkdir -p "$SITE_DIR"
@@ -52,8 +73,8 @@ jobs:
           <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>Science Blender Assets</title>
-          <meta name="description" content="A remote asset library for Blender 5.2+.">
+          <title>__SITE_TITLE__</title>
+          <meta name="description" content="A remote asset library for Blender __BLENDER_VERSION__+.">
           <style>
             :root {
               --bg: #fbfbfa;
@@ -145,12 +166,12 @@ jobs:
           </head>
           <body>
           <main>
-            <h1>Science Blender Assets</h1>
-            <p class="tagline">A remote asset library for Blender&nbsp;5.2 and newer.</p>
+            <h1>__SITE_TITLE__</h1>
+            <p class="tagline">A remote asset library for Blender&nbsp;__BLENDER_VERSION__ and newer.</p>
 
             <h2>Library URL</h2>
             <div class="urlbar">
-              <code id="url">https://kolibril13.github.io/science-blender-assets/</code>
+              <code id="url">__PAGES_URL__</code>
               <button id="copy" type="button">Copy</button>
             </div>
 
@@ -181,8 +202,8 @@ jobs:
             </section>
 
             <footer>
-              Built with Blender 5.2 from
-              <a href="https://github.com/kolibril13/science-blender-assets">kolibril13/science-blender-assets</a>.
+              Built with Blender __BLENDER_VERSION__ from
+              <a href="__REPO_URL__">__REPO_SLUG__</a>.
             </footer>
           </main>
 
@@ -252,6 +273,16 @@ jobs:
           </body>
           </html>
           HTML
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ["SITE_DIR"]) / "index.html"
+          text = path.read_text()
+          for token in ("SITE_TITLE", "BLENDER_VERSION", "PAGES_URL", "REPO_URL", "REPO_SLUG"):
+              text = text.replace(f"__{token}__", os.environ[token])
+          path.write_text(text)
+          PY
 
       # Writes _asset-library-meta.json, _v1/asset-index.json, _v1/assets-*.json
       # and the *_thumbnails/ WebP previews. The name & contact staged in from
