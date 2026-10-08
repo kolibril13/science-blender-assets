@@ -9,3 +9,8 @@ VERSION 1
 de68bbb4-1723-431d-92e8-8569fb89f267:GridAsset:GridAsset
 8a59070f-2296-47b8-87b8-804be3964cce:Testing:Testing
 c0db4708-af9b-4d4b-8729-455ebbec950a:Rigs:Rigs
+5c72c30f-81de-5915-ae1c-e28ddc44e227:Tree Clipper:Tree Clipper
+167ba458-20e0-532f-8d83-3920de3812c5:Tree Clipper/Compositor:Tree Clipper-Compositor
+0162696c-a070-52c8-b62b-6975789ef54f:Tree Clipper/Geometry Nodes:Tree Clipper-Geometry Nodes
+ac300013-fdb0-52f0-9a71-57465abc0265:Tree Clipper/Other:Tree Clipper-Other
+e2174a02-e483-53bb-aac0-0e5373c2048c:Tree Clipper/Shader:Tree Clipper-Shader

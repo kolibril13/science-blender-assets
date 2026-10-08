@@ -12,3 +12,6 @@ _asset_download_location/
 
 # Editor/tooling state that sometimes lands inside the library folder.
 .claude/
+
+# Tree Clipper downloads (rebuilt by tools/tree_clipper/download.py).
+tools/tree_clipper/_cache/
