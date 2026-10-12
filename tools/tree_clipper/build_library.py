@@ -87,9 +87,8 @@ def build(asset):
     root.asset_mark()
     meta = root.asset_data
     meta.author = asset["author"]
-    meta.description = (asset.get("description") or "") + f"\n\nhttps://tree-clipper.com/{asset['author']}/{asset['slug']}"
+    meta.description = asset.get("description") or ""
     meta.catalog_id = catalog_id(CATALOGS.get(asset.get("node_type"), CATALOGS[None]))
-    meta.tags.new(asset["author"], skip_if_exists=True)
     if asset.get("node_type"):
         meta.tags.new(asset["node_type"], skip_if_exists=True)
     if asset.get("image_file"):
