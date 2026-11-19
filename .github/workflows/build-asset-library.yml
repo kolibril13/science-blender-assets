@@ -17,7 +17,7 @@ env:
   SITE_DIR: _site
   # Single source of truth for the installed Blender version — used for the
   # setup-blender step and echoed into the generated landing page.
-  BLENDER_VERSION: "5.2"
+  BLENDER_VERSION: "5.3"
 
 jobs:
   build:

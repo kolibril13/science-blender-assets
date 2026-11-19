@@ -4,7 +4,7 @@ Run download.py first, then:
   blender --background --factory-startup --python tools/tree_clipper/build_library.py
 Rewrites assets/tree_clipper/*.blend (one per asset) and the Tree Clipper
 entries in assets/blender_assets.cats.txt; other catalogs are left untouched.
-Needs the Tree Clipper extension installed in Blender 5.2.
+Needs the Tree Clipper extension installed in Blender 5.3.
 """
 import base64, gzip, json, os, re, sys, traceback, uuid
 from pathlib import Path
@@ -12,7 +12,7 @@ from pathlib import Path
 import bpy
 import numpy as np
 
-EXT = Path.home() / "Library/Application Support/Blender/5.2/extensions/blender_org/tree_clipper"
+EXT = Path.home() / "Library/Application Support/Blender/5.3/extensions/blender_org/tree_clipper"
 sys.path.insert(0, str(EXT))
 from _vendor.tree_clipper.import_nodes import ImportIntermediate, ImportParameters  # noqa: E402
 from _vendor.tree_clipper.specific_handlers import BUILT_IN_IMPORTER  # noqa: E402
