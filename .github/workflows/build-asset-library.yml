@@ -67,6 +67,7 @@ jobs:
         run: |
           mkdir -p "$SITE_DIR"
           cp -R "$LIBRARY_DIR"/. "$SITE_DIR"/
+          cp tools/gallery/gallery.js "$SITE_DIR/"
           cat > "$SITE_DIR/index.html" <<'HTML'
           <!doctype html>
           <html lang="en">
@@ -157,6 +158,13 @@ jobs:
             .card .nm { font-size: .82rem; margin-top: .5rem; word-break: break-word; }
             .card .ct { font-size: .72rem; color: var(--muted); }
 
+            #source-dialog { width: min(65rem, 92vw); background: var(--panel); color: var(--text);
+              border: 1px solid var(--border); border-radius: 10px; }
+            #source-dialog form { float: right; }
+            #source-dialog iframe { margin-top: .7rem; width: 100%; height: 70vh; border: 0; }
+            #source-dialog::backdrop { background: #0008; }
+            #source-menu { position: fixed; inset: auto; margin: 0; }
+            .card button { margin-top: .4rem; }
             footer {
               margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--border);
               color: var(--muted); font-size: .875rem;
@@ -207,6 +215,13 @@ jobs:
             </footer>
           </main>
 
+          <dialog id="source-dialog" aria-labelledby="source-title">
+            <strong id="source-title"></strong>
+            <form method="dialog"><button autofocus>Close</button></form>
+            <iframe title="Highlighted Python source" sandbox></iframe>
+          </dialog>
+          <button id="source-menu" popover type="button">View nodebpy code</button>
+          <script src="gallery.js"></script>
           <script>
             const btn = document.getElementById("copy");
             btn.addEventListener("click", async () => {
@@ -241,6 +256,7 @@ jobs:
                 if (!assets.length) return;
 
                 const grid = document.getElementById("assets");
+                const sources = await loadSources();
                 for (const asset of assets) {
                   const card = document.createElement("div");
                   card.className = "card";
@@ -262,6 +278,8 @@ jobs:
                     ct.textContent = catalog;
                     card.append(ct);
                   }
+                  const key = JSON.stringify([asset.files[0], asset.id_type, asset.name]);
+                  if (sources.has(key)) addSourceControls(card, asset.name, sources.get(key));
                   grid.append(card);
                 }
                 document.getElementById("listing").hidden = false;
@@ -289,6 +307,16 @@ jobs:
       # $LIBRARY_DIR are preserved; only the api_versions block is refreshed.
       - name: Generate asset listing
         run: blender -b --factory-startup -c asset_listing generate "$SITE_DIR"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Export nodebpy gallery sources
+        run: |
+          export GALLERY_PACKAGES="$RUNNER_TEMP/gallery-packages"
+          python -m pip install --target "$GALLERY_PACKAGES" nodebpy==530.0.3 Pygments==2.19.2
+          blender -b --factory-startup --disable-autoexec --python-exit-code 1 --python tools/gallery/export.py
 
       # Re-hashes every referenced .blend and thumbnail, checks the index and
       # page counts agree, and fails on an empty library or placeholder contact.
